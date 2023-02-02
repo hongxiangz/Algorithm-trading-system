@@ -9,7 +9,7 @@ import statsmodels
 
 ek.set_app_key(os.getenv('EIKON_API'))
 
-dt_prc_div_splt = pd.read_csv('assignment1/unadjusted_price_history.csv')
+dt_prc_div_splt = pd.read_csv('unadjusted_price_history.csv')
 
 app = Dash(__name__)
 app.layout = html.Div([
