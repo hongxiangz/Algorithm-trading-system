@@ -38,7 +38,7 @@ app.layout = html.Div([
     dash_table.DataTable(
         id = "returns-tbl",
         page_action='none',
-        style_table={'height': '30px', 'overflowY': 'auto', "width": 'auto'}
+        style_table={'height': '300px', 'overflowY': 'auto', "width": 'auto'}
     ),
     html.H2('Alpha & Beta Scatter Plot'),
     html.Div([
