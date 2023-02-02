@@ -2,20 +2,30 @@ from dash import Dash, html, dcc, dash_table, Input, Output, State
 import eikon as ek
 import pandas as pd
 import numpy as np
+from dash import dcc
 from datetime import datetime
 import plotly.express as px
 import os
-import statsmodels
 
 ek.set_app_key(os.getenv('EIKON_API'))
 
-dt_prc_div_splt = pd.read_csv('unadjusted_price_history.csv')
+spacer = html.Div(style={'margin': '10px','display':'inline'})
 
 app = Dash(__name__)
 app.layout = html.Div([
     html.Div([
-        dcc.Input(id = 'benchmark-id', type = 'text', value="IVV"),
-        dcc.Input(id = 'asset-id', type = 'text', value="AAPL.O")
+        html.Label(children="Benchmark: "),
+        dcc.Input(id = 'benchmark-id', type = 'text', value="IVV",placeholder="eg.IVV"),
+        spacer,
+        html.Label(children="Asset: "),
+        dcc.Input(id = 'asset-id', type = 'text', value="AAPL.O",placeholder="eg.AAPL.O"),
+        spacer,
+        html.Label(children="start_date: "),
+        dcc.Input(id = 'start-date',type ='text',value ="2020-01-01",placeholder="YYYY-MM-DD"),
+        spacer,
+        html.Label(children="end_date: "),
+        dcc.Input(id = 'end-date',type='text',value= datetime.now().strftime("%Y-%m-%d"),placeholder="YYYY-MM-DD"),
+        spacer
     ]),
     html.Button('QUERY Refinitiv', id = 'run-query', n_clicks = 0),
     html.H2('Raw Data from Refinitiv'),
@@ -28,21 +38,43 @@ app.layout = html.Div([
     dash_table.DataTable(
         id = "returns-tbl",
         page_action='none',
-        style_table={'height': '300px', 'overflowY': 'auto'}
+        style_table={'height': '30px', 'overflowY': 'auto', "width": 'auto'}
     ),
     html.H2('Alpha & Beta Scatter Plot'),
+    html.Div([
+        html.Label(children="start_date: "),
+        dcc.Input(id='graph-start-date', type='text', value="2020-01-01", placeholder="graph start date"),
+        spacer,
+        html.Label(children="end_date: "),
+        dcc.Input(id='graph-end-date', type='text', value=datetime.now().strftime("%Y-%m-%d"), placeholder="graph end date"),
+    ]),
+    html.Button('RUN AB-Plot', id='run-ab-plot', n_clicks=0),
+    dash_table.DataTable(
+        id = "ab-tbl",
+        page_action = 'none',
+        style_table ={
+            'widths':'10px',
+            'overflowY': 'auto',
+            'whiteSpace': 'normal',
+            'height': 'auto',
+            'lineHeight': '15px'
+        }
+    ),
+
     dcc.Graph(id="ab-plot"),
+
     html.P(id='summary-text', children="")
+
 ])
 
 @app.callback(
     Output("history-tbl", "data"),
     Input("run-query", "n_clicks"),
-    [State('benchmark-id', 'value'), State('asset-id', 'value')],
+    [State('benchmark-id', 'value'), State('asset-id', 'value'),State('start-date','value'),State('end-date','value')],
     prevent_initial_call=True
 )
-def query_refinitiv(n_clicks, benchmark_id, asset_id):
-    assets = [benchmark_id, asset_id]
+def query_refinitiv(n_clicks, benchmark_id, asset_id,start_date,end_date):
+    assets = [benchmark_id, asset_id,start_date,end_date]
     prices, prc_err = ek.get_data(
         instruments=assets,
         fields=[
@@ -53,7 +85,7 @@ def query_refinitiv(n_clicks, benchmark_id, asset_id):
             'TR.PriceCloseDate'
         ],
         parameters={
-            'SDate': '2017-01-01',
+            'SDate': start_date,
             'EDate': datetime.now().strftime("%Y-%m-%d"),
             'Frq': 'D'
         }
@@ -68,7 +100,7 @@ def query_refinitiv(n_clicks, benchmark_id, asset_id):
             'TR.DivPaymentType'
         ],
         parameters={
-            'SDate': '2017-01-01',
+            'SDate': start_date,
             'EDate': datetime.now().strftime("%Y-%m-%d"),
             'Frq': 'D'
         }
@@ -79,7 +111,7 @@ def query_refinitiv(n_clicks, benchmark_id, asset_id):
         fields=['TR.CAEffectiveDate', 'TR.CAAdjustmentFactor'],
         parameters={
             "CAEventType": "SSP",
-            'SDate': '2017-01-01',
+            'SDate': start_date,
             'EDate': datetime.now().strftime("%Y-%m-%d"),
             'Frq': 'D'
         }
@@ -139,6 +171,7 @@ def query_refinitiv(n_clicks, benchmark_id, asset_id):
 
     return(unadjusted_price_history.to_dict('records'))
 
+
 @app.callback(
     Output("returns-tbl", "data"),
     Input("history-tbl", "data"),
@@ -161,8 +194,7 @@ def calculate_returns(history_tbl):
     numerator = dt_prc_div_splt[[dte_col, ins_col, prc_col, div_col]].tail(-1)
     denominator = dt_prc_div_splt[[prc_col, spt_col]].head(-1)
 
-    return(
-        pd.DataFrame({
+    pivot = pd.DataFrame({
         'Date': numerator[dte_col].reset_index(drop=True),
         'Instrument': numerator[ins_col].reset_index(drop=True),
         'rtn': np.log(
@@ -172,19 +204,56 @@ def calculate_returns(history_tbl):
         )
     }).pivot_table(
             values='rtn', index='Date', columns='Instrument'
-        ).to_dict('records')
+        )
+    pivot["Date"] = pd.to_datetime(pivot.index).strftime("%Y-%m-%d")#the original Date looks like this 2022-01-12T00:00:00, but we need 2022-01-12
+    return(pivot.to_dict('records')
     )
 
 @app.callback(
     Output("ab-plot", "figure"),
+    Input("run-ab-plot","n_clicks"),
     Input("returns-tbl", "data"),
-    [State('benchmark-id', 'value'), State('asset-id', 'value')],
+    [State('benchmark-id', 'value'), State('asset-id', 'value'), State('graph-start-date', 'value'),
+     State('graph-end-date', 'value')],
     prevent_initial_call = True
 )
-def render_ab_plot(returns, benchmark_id, asset_id):
+def render_ab_plot(n_clicks,returns, benchmark_id, asset_id,start_date,end_date):
+
+    filtered_returns = []
+    returns_copy = returns.copy()
+    for record in returns_copy:
+        if (start_date<= record['Date']<=end_date):
+            del record['Date']
+            filtered_returns.append(record)
     return(
-        px.scatter(returns, x=benchmark_id, y=asset_id, trendline='ols')
+        px.scatter(filtered_returns, x=benchmark_id, y=asset_id, trendline='ols')
     )
+@app.callback(
+    Output("ab-tbl", "data"),
+    Input("ab-plot","figure"),
+    prevent_initial_call = True
+)
+def render_ab_tbl(ab_plot):
+    # alpha = R- E(R)
+    # E(R) =  Rf-beta*(Rm-Rf), which is the trend line of the ab-plot figure
+    #1. extract beta and risk free retrun rate from the ab-plot figure
+    trend_line = ab_plot['data'][1]['hovertemplate']#string type,contains information of the beta and the risk free return rate
+    regression_equation_elements_list = trend_line.split("<br>")[1].strip().split()#list type,contains[asset,'=',beta,'*',benchmark,'+',risk_free_return_rate]
+    beta,risk_free_rtn = float(regression_equation_elements_list[2]), float(regression_equation_elements_list[6])
+
+    #2. extract both return rates of the asset and the market return rates from the ab-plot figure and then calculate their average
+    asset_return = ab_plot['data'][1]['y']#a list of the asset rate of return
+    asset_avg_rtn = sum(asset_return)/len(asset_return)#average return of the asset
+    benchmark_return = ab_plot['data'][1]['x']# a list of the benchmark rate of return
+    mkt_avg_rtn = sum(benchmark_return)/len(benchmark_return) # benchmark average return(AKA:market average return)
+
+    #3.calculate alpha
+    alpha = asset_avg_rtn - risk_free_rtn - beta * (mkt_avg_rtn-risk_free_rtn)
+
+    return (
+        pd.DataFrame({'alpha':[alpha],'beta': [beta]}).to_dict('records')
+    )
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
