@@ -205,7 +205,7 @@ def calculate_returns(history_tbl):
     }).pivot_table(
             values='rtn', index='Date', columns='Instrument'
         )
-    pivot["Date"] = pd.to_datetime(pivot.index).strftime("%Y-%m-%d")#the original Date looks like this 2022-01-12T00:00:00, but we need 2022-01-12
+    pivot["Date"] = pd.to_datetime(pivot.index).strftime("%Y-%m-%d")
     return(pivot.to_dict('records')
     )
 
@@ -234,20 +234,15 @@ def render_ab_plot(n_clicks,returns, benchmark_id, asset_id,start_date,end_date)
     prevent_initial_call = True
 )
 def render_ab_tbl(ab_plot):
-    # alpha = R- E(R)
-    # E(R) =  Rf-beta*(Rm-Rf), which is the trend line of the ab-plot figure
-    #1. extract beta and risk free retrun rate from the ab-plot figure
-    trend_line = ab_plot['data'][1]['hovertemplate']#string type,contains information of the beta and the risk free return rate
-    regression_equation_elements_list = trend_line.split("<br>")[1].strip().split()#list type,contains[asset,'=',beta,'*',benchmark,'+',risk_free_return_rate]
+
+    trend_line = ab_plot['data'][1]['hovertemplate']
+    regression_equation_elements_list = trend_line.split("<br>")[1].strip().split()
     beta,risk_free_rtn = float(regression_equation_elements_list[2]), float(regression_equation_elements_list[6])
 
-    #2. extract both return rates of the asset and the market return rates from the ab-plot figure and then calculate their average
-    asset_return = ab_plot['data'][1]['y']#a list of the asset rate of return
-    asset_avg_rtn = sum(asset_return)/len(asset_return)#average return of the asset
-    benchmark_return = ab_plot['data'][1]['x']# a list of the benchmark rate of return
-    mkt_avg_rtn = sum(benchmark_return)/len(benchmark_return) # benchmark average return(AKA:market average return)
-
-    #3.calculate alpha
+    asset_return = ab_plot['data'][1]['y']
+    asset_avg_rtn = sum(asset_return)/len(asset_return)
+    benchmark_return = ab_plot['data'][1]['x']
+    mkt_avg_rtn = sum(benchmark_return)/len(benchmark_return)
     alpha = asset_avg_rtn - risk_free_rtn - beta * (mkt_avg_rtn-risk_free_rtn)
 
     return (
