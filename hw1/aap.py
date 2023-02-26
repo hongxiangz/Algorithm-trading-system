@@ -7,52 +7,104 @@ import plotly.express as px
 import os
 import statsmodels
 
+app = Dash(__name__)
+
 ek.set_app_key(os.getenv('EIKON_API'))
 
-spacer = html.Div(style={'margin': '10px','display':'inline'})
+# spacer = html.Div(style={'margin': '10px','display':'inline'})
+assets = ['AAPL.O', 'IVV', 'GLD', 'SHY.O', "MSFT.O", "TSLA.O"]
 
-app = Dash(__name__)
 app.layout = html.Div([
-    html.Div([
-        html.Label("Benchmark:"),
-        spacer,
-        dcc.Input(id = 'benchmark-id', type = 'text', value="IVV"),
-        spacer,
-        html.Label("Asset:"),
-        spacer,
-        dcc.Input(id = 'asset-id', type = 'text', value="AAPL.O"),
-        spacer,
-        html.Div([
-        dcc.Input(id='start_date-id', type='text', value="AAPL.O"),
-        spacer,
-        dcc.Input(id='end_date-id', type='text', value="AAPL.O")])
 
-    ]),
-    html.Button('QUERY Refinitiv', id = 'run-query', n_clicks = 0),
+    html.Div([
+        html.Div([
+            html.Label('Benchmark'),
+            dcc.Dropdown(assets, assets[0], id='benchmark-id')
+            ],
+            style={'padding': 10, 'flex': 1, 'width': '200px'}
+        ),
+        html.Div([
+            html.Label('Asset'),
+            dcc.Dropdown(assets, assets[1], id='asset-id')
+            ],
+            style={'padding': 10, 'flex': 1, 'width': '200px'}
+        )],
+        style={'display': 'flex', 'flex-direction': 'row'}
+    ),
+    html.Div([
+        html.Label('Start date/End date'),
+        html.Br(),
+        dcc.DatePickerRange(
+            id='my-date-picker-range',
+            start_date_placeholder_text="2020-01-01",  # "Start Period"
+            end_date_placeholder_text=datetime.now().strftime("%Y-%m-%d"),  # "End Period"
+            calendar_orientation='vertical',
+            max_date_allowed=datetime.now(),
+            month_format='YYYY-MM-DD',
+            style={
+                'font-size': '14px',
+            }
+        ),
+        "\t",
+        html.Button('Query Refinitiv', id='run-query', n_clicks=0,
+                    style={"height": "30px", "width": "200px", "font-size": "14px"}),
+        ],
+        style = {'padding': 10, 'flex': 1}
+    ),
+
+    html.Br(),
     html.H2('Raw Data from Refinitiv'),
     dash_table.DataTable(
         id = "history-tbl",
         page_action='none',
-        style_table={'height': '300px', 'overflowY': 'auto'}
+        style_table={'height': '300px', 'overflowY': 'auto', 'overflowX': 'scroll'}
     ),
+
+    html.Br(),
     html.H2('Historical Returns'),
     dash_table.DataTable(
         id = "returns-tbl",
         page_action='none',
-        style_table={'height': '300px', 'overflowY': 'auto'}
+        style_table={'height': '300px', 'overflowY': 'auto', 'overflowX': 'scroll'}
     ),
+
+    html.Br(),
     html.H2('Alpha & Beta Scatter Plot'),
+    html.Div([
+        html.Label('Start date/End date'),
+        html.Br(),
+        dcc.DatePickerRange(
+            id='my-date-picker-range-2',
+            start_date_placeholder_text="2020-01-01",  # "Start Period"
+            end_date_placeholder_text=datetime.now().strftime("%Y-%m-%d"),  # "End Period"
+            calendar_orientation='vertical',
+            max_date_allowed=datetime.now(),
+            month_format='YYYY-MM-DD',
+            style={
+                'font-size': '14px',
+                # "width": "500px"
+            }
+        ),
+        "\t",
+        html.Button('Update date', id='update-plot', n_clicks=0,
+                    style={"height": "30px", "width": "200px", "font-size": "14px"}),
+    ],
+        style={'padding': 10, 'flex': 1}
+    ),
+
     dcc.Graph(id="ab-plot"),
     html.P(id='summary-text', children="")
 ])
 
+
 @app.callback(
     Output("history-tbl", "data"),
     Input("run-query", "n_clicks"),
-    [State('benchmark-id', 'value'), State('asset-id', 'value')],
+    [State('benchmark-id', 'value'), State('asset-id', 'value'),
+     State('my-date-picker-range', 'start_date'), State('my-date-picker-range', 'end_date')],
     prevent_initial_call=True
 )
-def query_refinitiv(n_clicks, benchmark_id, asset_id):
+def query_refinitiv(n_clicks, benchmark_id, asset_id,  start_date, end_date):
     assets = [benchmark_id, asset_id]
     prices, prc_err = ek.get_data(
         instruments=assets,
@@ -64,8 +116,8 @@ def query_refinitiv(n_clicks, benchmark_id, asset_id):
             'TR.PriceCloseDate'
         ],
         parameters={
-            'SDate': '2017-01-01',
-            'EDate': datetime.now().strftime("%Y-%m-%d"),
+            'SDate': start_date,
+            'EDate': end_date,
             'Frq': 'D'
         }
     )
@@ -79,8 +131,8 @@ def query_refinitiv(n_clicks, benchmark_id, asset_id):
             'TR.DivPaymentType'
         ],
         parameters={
-            'SDate': '2017-01-01',
-            'EDate': datetime.now().strftime("%Y-%m-%d"),
+            'SDate': start_date,
+            'EDate': end_date,
             'Frq': 'D'
         }
     )
@@ -90,8 +142,8 @@ def query_refinitiv(n_clicks, benchmark_id, asset_id):
         fields=['TR.CAEffectiveDate', 'TR.CAAdjustmentFactor'],
         parameters={
             "CAEventType": "SSP",
-            'SDate': '2017-01-01',
-            'EDate': datetime.now().strftime("%Y-%m-%d"),
+            'SDate': start_date,
+            'EDate': end_date,
             'Frq': 'D'
         }
     )
@@ -150,10 +202,11 @@ def query_refinitiv(n_clicks, benchmark_id, asset_id):
 
     return(unadjusted_price_history.to_dict('records'))
 
+
 @app.callback(
     Output("returns-tbl", "data"),
     Input("history-tbl", "data"),
-    prevent_initial_call = True
+    prevent_initial_call=True
 )
 def calculate_returns(history_tbl):
 
@@ -186,11 +239,12 @@ def calculate_returns(history_tbl):
         ).to_dict('records')
     )
 
+
 @app.callback(
     Output("ab-plot", "figure"),
     Input("returns-tbl", "data"),
     [State('benchmark-id', 'value'), State('asset-id', 'value')],
-    prevent_initial_call = True
+    prevent_initial_call=True
 )
 def render_ab_plot(returns, benchmark_id, asset_id):
     return(

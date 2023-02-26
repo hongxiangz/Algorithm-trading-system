@@ -23,6 +23,7 @@ AAPL.O,2022-02-04,0.22,Interim,Cash Dividend
 AAPL.O,2022-05-06,0.23,Interim,Cash Dividend
 AAPL.O,2022-08-05,0.23,Interim,Cash Dividend
 AAPL.O,2022-11-04,0.23,Final,Cash Dividend
+AAPL.O,2023-02-10,0.23,Interim,Cash Dividend
 IVV,2017-03-24,1.032177,Interim,Cash Dividend
 IVV,2017-06-27,1.116979,Interim,Cash Dividend
 IVV,2017-09-26,1.283922,Final,Cash Dividend
@@ -61,7 +62,6 @@ SHY.O,2017-10-02,0.072561,Interim,Cash Dividend
 SHY.O,2017-11-01,0.078435,Interim,Cash Dividend
 SHY.O,2017-12-01,0.078527,Final,Cash Dividend
 SHY.O,2017-12-21,0.094086,Extra,Cash Dividend
-SHY.O,,0.0,Interim,Cash Dividend
 SHY.O,2018-02-01,0.086192,Interim,Cash Dividend
 SHY.O,2018-03-01,0.086349,Interim,Cash Dividend
 SHY.O,2018-04-02,0.094432,Interim,Cash Dividend
@@ -86,7 +86,6 @@ SHY.O,2019-10-01,0.135,Interim,Cash Dividend
 SHY.O,2019-11-01,0.139555,Interim,Cash Dividend
 SHY.O,2019-12-02,0.134135,Final,Cash Dividend
 SHY.O,2019-12-19,0.136532,Extra,Cash Dividend
-SHY.O,2019-12-30,0.0,Interim,Cash Dividend
 SHY.O,2020-02-03,0.134865,Interim,Cash Dividend
 SHY.O,2020-03-02,0.124966,Interim,Cash Dividend
 SHY.O,2020-04-01,0.106006,Interim,Cash Dividend
@@ -100,7 +99,6 @@ SHY.O,2020-11-02,0.038605,Interim,Cash Dividend
 SHY.O,2020-12-01,0.032872,Final,Cash Dividend
 SHY.O,2020-12-17,0.03197,Interim,Cash Dividend
 SHY.O,2021-02-01,0.030107,Interim,Cash Dividend
-SHY.O,2020-12-30,0.0,Capital gains,Cash Dividend
 SHY.O,2021-03-01,0.022035,Interim,Cash Dividend
 SHY.O,2021-04-01,0.019313,Interim,Cash Dividend
 SHY.O,2021-05-03,0.012243,Interim,Cash Dividend
@@ -112,7 +110,6 @@ SHY.O,2021-10-01,0.010678,Interim,Cash Dividend
 SHY.O,2021-11-01,0.010985,Interim,Cash Dividend
 SHY.O,2021-12-01,0.049913,Final,Cash Dividend
 SHY.O,2021-12-16,0.018063,Interim,Cash Dividend
-SHY.O,2021-12-30,0.0,Interim,Cash Dividend
 SHY.O,2022-02-01,0.023298,Interim,Cash Dividend
 SHY.O,2022-03-01,0.025406,Interim,Cash Dividend
 SHY.O,2022-04-01,0.036305,Interim,Cash Dividend
@@ -125,6 +122,7 @@ SHY.O,2022-10-03,0.108023,Interim,Cash Dividend
 SHY.O,2022-11-01,0.14069,Final,Cash Dividend
 SHY.O,2022-12-01,0.165441,Interim,Cash Dividend
 SHY.O,2022-12-15,0.180684,Final,Cash Dividend
+SHY.O,2023-02-01,0.152447,Interim,Cash Dividend
 MSFT.O,2017-02-14,0.39,Interim,Cash Dividend
 MSFT.O,2017-05-16,0.39,Interim,Cash Dividend
 MSFT.O,2017-08-15,0.39,Interim,Cash Dividend

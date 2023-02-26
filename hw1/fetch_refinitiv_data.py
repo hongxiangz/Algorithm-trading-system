@@ -10,7 +10,6 @@ from datetime import datetime
 import eikon as ek
 import pandas as pd
 import os
-
 ###### Before running this script:
 # 1) Create an app key within Refinitiv
 # 2) Create an environmental variable on your computer that stores your key.
@@ -161,10 +160,10 @@ splits.rename(
 )
 splits.dropna(inplace=True)
 splits['Date'] = pd.to_datetime(splits['Date']).dt.date
-# save as csv so you can open in Excel if you want
+# save as csv, so you can open in Excel if you want
 splits.to_csv('splits.csv', index=False)
 
-# 9) Merge prices & divs dfs together by date, and fill the missing values in
+#  9) Merge prices & divs dfs together by date, and fill the missing values in
 #      the merged dividends dataframe with "0".
 unadjusted_price_history = pd.merge(
     prices, divs[['Instrument', 'Date', 'div_amt']],
@@ -186,4 +185,4 @@ if unadjusted_price_history.isnull().values.any():
     raise Exception('missing values detected!')
 
 # 12) Save raw data as csv:
-unadjusted_price_history.to_csv('unadjusted_price_history.csv', index=False)
+unadjusted_price_history.to_dict('unadjusted_price_history.csv', index=False)

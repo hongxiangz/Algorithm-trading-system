@@ -258,4 +258,4 @@ def render_ab_plot(returns, benchmark_id, asset_id):
     )
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, port = 8020)

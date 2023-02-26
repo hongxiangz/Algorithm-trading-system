@@ -34,6 +34,7 @@ app.layout = html.Div([
         page_action='none',
         style_table={'height': '300px', 'overflowY': 'auto'}
     ),
+
     html.H2('Historical Returns'),
     dash_table.DataTable(
         id = "returns-tbl",
@@ -62,7 +63,6 @@ app.layout = html.Div([
     ),
 
     dcc.Graph(id="ab-plot"),
-
     html.P(id='summary-text', children="")
 
 ])
@@ -251,4 +251,4 @@ def render_ab_tbl(ab_plot):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, port = 8080)
