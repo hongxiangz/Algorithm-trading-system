@@ -1,10 +1,18 @@
 import eikon as ek
 import os
+import datetime
 
-eikon_api = os.getenv('EIKON_API')
-ek.set_app_key(eikon_api)
+import pandas as pd
 
-df = ek.get_timeseries(["MSFT.O"],
-                       start_date="2016-01-01",
-                       end_date="2023-01-19")
-print(df)
+# html.Div(
+#             [
+#
+#             ]
+#         )
+
+# create a sample dataframe
+df = pd.DataFrame({'A': [1, 2, 3, 4, 5,6], 'B': ['a', 'b', 'c', 'd', 'e', 'f']})
+
+# select all rows except for the last row
+result = df
+print(result)

@@ -2,7 +2,7 @@ from dash import Dash, html, dcc, dash_table, Input, Output, State
 import eikon as ek
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from datetime import datetime, date
 import plotly.express as px
 import os
 import statsmodels
@@ -14,87 +14,97 @@ ek.set_app_key(os.getenv('EIKON_API'))
 # spacer = html.Div(style={'margin': '10px','display':'inline'})
 assets = ['AAPL.O', 'IVV', 'GLD', 'SHY.O', "MSFT.O", "TSLA.O"]
 
-app.layout = html.Div([
-
-    html.Div([
-        html.Div([
-            html.Label('Benchmark'),
-            dcc.Dropdown(assets, assets[0], id='benchmark-id')
+app.layout = html.Div(
+    [
+        # Choosing Assets
+        html.Div(
+            [
+                html.Div(
+                    [
+                        html.Label('Benchmark'),
+                        dcc.Dropdown(assets, assets[0], id='benchmark-id')
+                    ],
+                    style={'padding': 10, 'flex': 1, 'width': '200px'}
+                ),
+                html.Div(
+                    [
+                        html.Label('Asset'),
+                        dcc.Dropdown(assets, assets[1], id='asset-id')
+                    ],
+                    style={'padding': 10, 'flex': 1, 'width': '200px'}
+                )
             ],
-            style={'padding': 10, 'flex': 1, 'width': '200px'}
+            style={'display': 'flex', 'flex-direction': 'row'}
         ),
-        html.Div([
-            html.Label('Asset'),
-            dcc.Dropdown(assets, assets[1], id='asset-id')
+        # Choosing dates & Query button
+        html.Div(
+            [
+                html.Label('Start date/End date'),
+                html.Br(),
+                dcc.DatePickerRange(
+                    id='my-date-picker-range',
+                    start_date=date(2020, 1, 1),
+                    end_date=datetime.now().strftime("%m/%d/%Y"),
+                    calendar_orientation='vertical',
+                    max_date_allowed=datetime.now(),
+                    month_format='YYYY-MM-DD',
+                    style={'font-size': '14px'}
+                ),
+                "\t",
+                html.Button('Query Refinitiv', id='run-query', n_clicks=0,
+                            style={"height": "30px", "width": "200px", "font-size": "14px"}),
             ],
-            style={'padding': 10, 'flex': 1, 'width': '200px'}
-        )],
-        style={'display': 'flex', 'flex-direction': 'row'}
-    ),
-    html.Div([
-        html.Label('Start date/End date'),
-        html.Br(),
-        dcc.DatePickerRange(
-            id='my-date-picker-range',
-            start_date_placeholder_text="2020-01-01",  # "Start Period"
-            end_date_placeholder_text=datetime.now().strftime("%Y-%m-%d"),  # "End Period"
-            calendar_orientation='vertical',
-            max_date_allowed=datetime.now(),
-            month_format='YYYY-MM-DD',
-            style={
-                'font-size': '14px',
-            }
+            style={'padding': 10, 'flex': 1}
         ),
-        "\t",
-        html.Button('Query Refinitiv', id='run-query', n_clicks=0,
-                    style={"height": "30px", "width": "200px", "font-size": "14px"}),
-        ],
-        style = {'padding': 10, 'flex': 1}
-    ),
-
-    html.Br(),
-    html.H2('Raw Data from Refinitiv'),
-    dash_table.DataTable(
-        id = "history-tbl",
-        page_action='none',
-        style_table={'height': '300px', 'overflowY': 'auto', 'overflowX': 'scroll'}
-    ),
-
-    html.Br(),
-    html.H2('Historical Returns'),
-    dash_table.DataTable(
-        id = "returns-tbl",
-        page_action='none',
-        style_table={'height': '300px', 'overflowY': 'auto', 'overflowX': 'scroll'}
-    ),
-
-    html.Br(),
-    html.H2('Alpha & Beta Scatter Plot'),
-    html.Div([
-        html.Label('Start date/End date'),
+        # Raw data table
         html.Br(),
-        dcc.DatePickerRange(
-            id='my-date-picker-range-2',
-            start_date_placeholder_text="2020-01-01",  # "Start Period"
-            end_date_placeholder_text=datetime.now().strftime("%Y-%m-%d"),  # "End Period"
-            calendar_orientation='vertical',
-            max_date_allowed=datetime.now(),
-            month_format='YYYY-MM-DD',
-            style={
-                'font-size': '14px',
-                # "width": "500px"
-            }
+        html.H2('Raw Data from Refinitiv'),
+        dash_table.DataTable(
+            id="history-tbl",
+            page_action='none',
+            style_table={'height': '300px', 'overflowY': 'auto', 'overflowX': 'scroll'}
         ),
-        "\t",
-        html.Button('Update date', id='update-plot', n_clicks=0,
-                    style={"height": "30px", "width": "200px", "font-size": "14px"}),
-    ],
-        style={'padding': 10, 'flex': 1}
-    ),
+        # Return table
+        html.Br(),
+        html.H2('Historical Returns'),
+        dash_table.DataTable(
+            id="returns-tbl",
+            page_action='none',
+            style_table={'height': '300px', 'overflowY': 'auto', 'overflowX': 'scroll'}
+        ),
+        # "Scatter plot choosing dates", "Query button" and "Alpha & Beta output"
+        html.Br(),
+        html.H2('Alpha & Beta Scatter Plot'),
+        html.Div(
+            [
+                html.Label('Start date/End date'),
+                html.Br(),
+                dcc.DatePickerRange(
+                    id='my-date-picker-range-plot',
+                    start_date=date(2021, 1, 1),
+                    end_date=datetime.now().strftime("%m/%d/%Y"),
+                    calendar_orientation='vertical',
+                    max_date_allowed=datetime.now(),
+                    month_format='YYYY-MM-DD',
+                    style={'font-size': '14px'}
+                ),
+                "\t",
+                html.Button('Update date', id='update-plot', n_clicks=0,
+                            style={"height": "30px", "width": "200px", "font-size": "14px"}),
+                "\t",
+                html.Label('Alpha:',  style={"font-size": "18px"}),
+                html.Output('1'),
+                html.Label('Beta:',  style={"font-size": "18px"}),
+                html.Output('2')
+            ],
+            style={'padding': 10, 'flex': 1}
+        ),
 
-    dcc.Graph(id="ab-plot"),
-    html.P(id='summary-text', children="")
-])
+        # Scatter plot
+        dcc.Graph(id="ab-plot"),
+        html.P(id='summary-text', children="")
+    ]
+)
 
 
 @app.callback(
@@ -104,7 +114,7 @@ app.layout = html.Div([
      State('my-date-picker-range', 'start_date'), State('my-date-picker-range', 'end_date')],
     prevent_initial_call=True
 )
-def query_refinitiv(n_clicks, benchmark_id, asset_id,  start_date, end_date):
+def query_refinitiv(n_clicks, benchmark_id, asset_id, start_date, end_date):
     assets = [benchmark_id, asset_id]
     prices, prc_err = ek.get_data(
         instruments=assets,
@@ -200,7 +210,7 @@ def query_refinitiv(n_clicks, benchmark_id, asset_id,  start_date, end_date):
     if unadjusted_price_history.isnull().values.any():
         raise Exception('missing values detected!')
 
-    return(unadjusted_price_history.to_dict('records'))
+    return unadjusted_price_history.to_dict('records')
 
 
 @app.callback(
@@ -208,11 +218,10 @@ def query_refinitiv(n_clicks, benchmark_id, asset_id,  start_date, end_date):
     Input("history-tbl", "data"),
     prevent_initial_call=True
 )
-def calculate_returns(history_tbl):
+def calculate_returns( history_tbl):
 
     dt_prc_div_splt = pd.DataFrame(history_tbl)
 
-    # Define what columns contain the Identifier, date, price, div, & split info
     ins_col = 'Instrument'
     dte_col = 'Date'
     prc_col = 'close'
@@ -225,8 +234,7 @@ def calculate_returns(history_tbl):
     numerator = dt_prc_div_splt[[dte_col, ins_col, prc_col, div_col]].tail(-1)
     denominator = dt_prc_div_splt[[prc_col, spt_col]].head(-1)
 
-    return(
-        pd.DataFrame({
+    pivot = pd.DataFrame({
         'Date': numerator[dte_col].reset_index(drop=True),
         'Instrument': numerator[ins_col].reset_index(drop=True),
         'rtn': np.log(
@@ -236,20 +244,59 @@ def calculate_returns(history_tbl):
         )
     }).pivot_table(
             values='rtn', index='Date', columns='Instrument'
-        ).to_dict('records')
-    )
+        )
+    pivot["Date"] = pd.to_datetime(pivot.index).strftime("%Y-%m-%d")
+    return pivot.to_dict('records')
 
 
 @app.callback(
     Output("ab-plot", "figure"),
+    Input("update-plot", "n_clicks"),
     Input("returns-tbl", "data"),
-    [State('benchmark-id', 'value'), State('asset-id', 'value')],
+    [State('benchmark-id', 'value'), State('asset-id', 'value'),
+     State('my-date-picker-range-plot', 'start_date'), State('my-date-picker-range-plot', 'end_date')],
     prevent_initial_call=True
 )
-def render_ab_plot(returns, benchmark_id, asset_id):
-    return(
+def render_ab_plot(n_clicks, returns, benchmark_id, asset_id, start_date, end_date):
+
+    returns = pd.DataFrame(returns)
+
+    if start_date is not None:
+        if end_date is not None:
+            returns = returns.loc[(returns['Date'] >= start_date) & (returns['Date'] <= end_date)]
+
+    return (
         px.scatter(returns, x=benchmark_id, y=asset_id, trendline='ols')
     )
+
+# @app.callback(
+#     Output("ab-tbl", "data"),
+#     Input("ab-plot", "figure"),
+#     prevent_initial_call=True
+# )
+# def render_ab_tbl(ab_plot):
+#
+#     trend_line = ab_plot['data'][1]['hovertemplate']
+#     regression_equation_elements_list = trend_line.split("<br>")[1].strip().split()
+#     beta,risk_free_rtn = float(regression_equation_elements_list[2]), float(regression_equation_elements_list[6])
+#
+#     asset_return = ab_plot['data'][1]['y']
+#     asset_avg_rtn = sum(asset_return)/len(asset_return)
+#     benchmark_return = ab_plot['data'][1]['x']
+#     mkt_avg_rtn = sum(benchmark_return)/len(benchmark_return)
+#     alpha = asset_avg_rtn - risk_free_rtn - beta * (mkt_avg_rtn-risk_free_rtn)
+#
+#     return (
+#         pd.DataFrame({'alpha':[alpha],'beta': [beta]}).to_dict('records')
+#     )
+
+    # plot = px.scatter(returns, x=benchmark_id, y=asset_id, trendline='ols')
+    # model = px.get_trendline_results(plot)
+    # results = model.iloc[0]["px_fit_results"]
+    # alpha = results.params[0]
+    # beta = results.params[1]
+
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
