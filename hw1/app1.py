@@ -5,7 +5,7 @@ import numpy as np
 from datetime import datetime, date
 import plotly.express as px
 import os
-import statsmodels
+# import statsmodels
 
 app = Dash(__name__)
 
@@ -271,7 +271,6 @@ def render_ab_plot(n_clicks, returns, benchmark_id, asset_id, start_date, end_da
     return (
         px.scatter(returns, x=benchmark_id, y=asset_id, trendline='ols'), f"Alpha: {alpha} Beta: {beta}"
     )
-
 
 if __name__ == '__main__':
     app.run_server(debug=True)
