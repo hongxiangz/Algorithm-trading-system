@@ -8,16 +8,17 @@ import plotly.express as px
 from datetime import datetime
 import os
 import eikon as ek
-# import refinitiv.dataplatform.eikon as ek
-import refinitiv.data as rd
+import refinitiv.dataplatform as rd
 import blotter as blt
 from dash import html
 import base64
+
+
 app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 percentage = dash_table.FormatTemplate.percentage(3)
 
-image_filename = '150041677385731_.pic.jpg'
+image_filename = '截屏2023-05-01 18.03.44.png'
 encoded_image = base64.b64encode(open(image_filename, 'rb').read())
 
 
@@ -111,7 +112,7 @@ controls = dbc.Card(
 )
 
 app.layout = dbc.Container(
-    [   html.H2('Created/Modified by: Xiaokuan Zhao, Rebecca Xiao, Xinyang Ding',
+    [   html.H2('Created/Modified by: xxx ',
                 style={'font-size': '36px', 'color': '#150',
                        'font-family': 'Times New Roman, sans-serif', 'text-align': 'center'}),
         dbc.Row(
