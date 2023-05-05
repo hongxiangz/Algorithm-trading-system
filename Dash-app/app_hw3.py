@@ -4,7 +4,7 @@ import datetime
 import math
 import time
 
-def mcszyr(df):
+def mcszyrzhx(df):
     df = df.set_index('trade_id')
     result = pd.DataFrame(columns=('trade_id','asset','dt_enter','dt_exit','success','n','rtn'))
     for i in df.index.unique():
@@ -47,5 +47,5 @@ def mcszyr(df):
 
 
 blotter = pd.read_csv('blotter.csv')
-ledger = mcszyr(blotter)
+ledger = mcszyrzhx(blotter)
 print(ledger)
