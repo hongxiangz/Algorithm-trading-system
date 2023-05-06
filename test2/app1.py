@@ -253,7 +253,7 @@ def calculate_returns( history_tbl):
     Input("returns-tbl", "data"),
     [State('benchmark-id', 'value'), State('asset-id', 'value'),
      State('my-date-picker-range-plot', 'start_date'), State('my-date-picker-range-plot', 'end_date')],
-    # prevent_initial_call=True
+    prevent_initial_call=True
 )
 def render_ab_plot(n_clicks, returns, benchmark_id, asset_id, start_date, end_date):
 
@@ -273,4 +273,4 @@ def render_ab_plot(n_clicks, returns, benchmark_id, asset_id, start_date, end_da
     )
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, port=8020)
